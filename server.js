@@ -1,78 +1,77 @@
-var http = require('http');
-var database = {
+const http = require('http');
+const hobbitPrefix = '/hobbits';
+
+let database = {
     6094690559071897: {
        name: "Frodo", 
-       birthday: "20 Aug 3300",
-       address: "Bagend",
+       birthday: "September 22, 2968 of Third Age",
+       address: "Bagend, Hobbiton, Shire",
        id: "6094690559071897"
     },
     1099270857172677: {
         name: "Sam", 
-        birthday: "21 Jan 3290",
-        address: "Hobbiton",
+        birthday: "April 6 June, 2980 of Third Age",
+        address: "Hobbiton, Shire",
         id: "1099270857172677"
     },
     8504541499688703: {
         name: "Merry", 
-        birthday: "4 June 3312",
-        address: "Bree",
+        birthday: "30 May, 2982 of Third Age",
+        address: "Shire",
         id: "8504541499688703"
     }, 
     8897236488571597: {
         name: "Pippin", 
-        birthday: "16 October 3314",
-        address: "Bree",
+        birthday: "January 21, 2990 of Third Age",
+        address: "Shire",
         id: "8897236488571597"
     },
 };
-var hobbitPrefix = '/hobbits';
 
-var readBody = function(req, callback) {
-    var body = '';
-    req.on('data', function(chunk) {
+let readBody = (req, callback) => {
+    let body = '';
+    req.on('data', (chunk) => {
     body += chunk.toString();
     });
-    req.on('end', function() {
+    req.on('end', () => {
     callback(body);
     });
 };
 
-var getDatabase = function (res) {
-    res.end(JSON.stringify(database));
-};
+let getDatabase = res => res.end(JSON.stringify(database));
 
-var getEntry = function (req, res) {
-    var id = req.url.slice((hobbitPrefix.length + 1));
+let getEntry = (req, res) => {
+    let id = req.url.slice((hobbitPrefix.length + 1));
     res.end(`You asked for ${JSON.stringify(database[id])}`);
 };
 
-var newEntry = function (req, res) {
-    readBody(req, function(body) {
-        var newId = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
-        var newHobbit = JSON.parse(body);
+let newEntry = (req, res) => {
+    readBody(req, (body) => {
+        let newId = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER).toString();
+        let newHobbit = JSON.parse(body);
         newHobbit.id = newId;
         database[newId] = newHobbit;
         res.end(`You added ${newHobbit.name}: ${JSON.stringify(database[newId])}`);
     });
 };
 
-var changeEntry = function (req, res) {
-    readBody(req, function(body) {
-        var changeHobbit = JSON.parse(body);
-        var id = changeHobbit.id;
+let changeEntry = (req, res) => {
+    readBody(req, (body) => {
+        let changeHobbit = JSON.parse(body);
+        let id = changeHobbit.id;
         database[id] = changeHobbit;
         res.end(`You updated #${id}: ${JSON.stringify(changeHobbit)}`);
     });
 };
 
-var deleteEntry = function (req, res) {
-    var id = req.url.slice((hobbitPrefix.length + 1));
-    var deleteHobbit = database[id];       
+let deleteEntry = (req, res) => {
+    let id = req.url.slice((hobbitPrefix.length + 1));
+    let deleteHobbit = database[id];       
     delete database[id];
     res.end(`You deleted ${deleteHobbit.name}: ${JSON.stringify(deleteHobbit)}`);
 };
 
-var server = http.createServer(function(req, res) {
+let server = http.createServer((req, res) => {
     if (req.url === hobbitPrefix && req.method === 'GET') {
         getDatabase(res);
     } else if (req.url.startsWith(hobbitPrefix) && req.method === 'GET') {
@@ -84,11 +83,8 @@ var server = http.createServer(function(req, res) {
     } else if (req.url.startsWith(hobbitPrefix) && req.method === 'DELETE') {
         deleteEntry(req, res);
     } else {
-        res.end('404 no hobbit found');
+        res.end('404 cannot read the fiery letters');
     }
 });
 
 server.listen(3000);
-
-currentID = 0
-
