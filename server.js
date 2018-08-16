@@ -37,32 +37,52 @@ var readBody = function(req, callback) {
     });
 };
 
+var getDatabase = function (res) {
+    res.end(JSON.stringify(database));
+};
+
+var getEntry = function (req, res) {
+    var id = req.url.slice((hobbitPrefix.length + 1));
+    res.end(`You asked for ${JSON.stringify(database[id])}`);
+};
+
+var newEntry = function (req, res) {
+    readBody(req, function(body) {
+        var newId = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
+        var newHobbit = JSON.parse(body);
+        newHobbit.id = newId;
+        database[newId] = newHobbit;
+        res.end(`You added ${newHobbit.name}: ${JSON.stringify(database[newId])}`);
+    });
+};
+
+var changeEntry = function (req, res) {
+    readBody(req, function(body) {
+        var changeHobbit = JSON.parse(body);
+        var id = changeHobbit.id;
+        database[id] = changeHobbit;
+        res.end(`You updated #${id}: ${JSON.stringify(changeHobbit)}`);
+    });
+};
+
+var deleteEntry = function (req, res) {
+    var id = req.url.slice((hobbitPrefix.length + 1));
+    var deleteHobbit = database[id];       
+    delete database[id];
+    res.end(`You deleted ${deleteHobbit.name}: ${JSON.stringify(deleteHobbit)}`);
+};
+
 var server = http.createServer(function(req, res) {
     if (req.url === hobbitPrefix && req.method === 'GET') {
-        res.end(JSON.stringify(database));
+        getDatabase(res);
     } else if (req.url.startsWith(hobbitPrefix) && req.method === 'GET') {
-        var id = req.url.slice((hobbitPrefix.length + 1));
-        res.end(`You asked for ${JSON.stringify(database[id])}`);
+        getEntry(req, res);
     } else if (req.url.startsWith(hobbitPrefix) && req.method === 'POST') {
-        readBody(req, function(body) {
-            var newId = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
-            var newHobbit = JSON.parse(body);
-            newHobbit.id = newId;
-            database[newId] = newHobbit;
-            res.end(`You added ${newHobbit.name}: ${body}`);
-        });
+        newEntry(req, res);
     } else if (req.url.startsWith(hobbitPrefix) && req.method === 'PUT') {
-        readBody(req, function(body) {
-            var changeHobbit = JSON.parse(body);
-            var id = changeHobbit.id;
-            database[id] = changeHobbit;
-            res.end(`You updated #${id}: ${JSON.stringify(changeHobbit)}`);
-        });
+        changeEntry(req, res);
     } else if (req.url.startsWith(hobbitPrefix) && req.method === 'DELETE') {
-        var id = req.url.slice((hobbitPrefix.length + 1));
-        var deleteHobbit = database[id];       
-        delete database[id];
-        res.end(`You deleted ${deleteHobbit.name}: ${JSON.stringify(deleteHobbit)}`);
+        deleteEntry(req, res);
     } else {
         res.end('404 no hobbit found');
     }
