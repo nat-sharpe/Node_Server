@@ -1,29 +1,74 @@
 var http = require('http');
-var database = {131:"Frodo", 293:"Samwise", 345:"Pippin", 402:"Merry"};
-var hobbitPrefix = '/hobbits/';
+var database = {
+    6094690559071897: {
+       name: "Frodo", 
+       birthday: "20 Aug 3300",
+       address: "Bagend",
+       id: "6094690559071897"
+    },
+    1099270857172677: {
+        name: "Sam", 
+        birthday: "21 Jan 3290",
+        address: "Hobbiton",
+        id: "1099270857172677"
+    },
+    8504541499688703: {
+        name: "Merry", 
+        birthday: "4 June 3312",
+        address: "Bree",
+        id: "8504541499688703"
+    }, 
+    8897236488571597: {
+        name: "Pippin", 
+        birthday: "16 October 3314",
+        address: "Bree",
+        id: "8897236488571597"
+    },
+};
+var hobbitPrefix = '/hobbits';
+
+var readBody = function(req, callback) {
+    var body = '';
+    req.on('data', function(chunk) {
+    body += chunk.toString();
+    });
+    req.on('end', function() {
+    callback(body);
+    });
+};
 
 var server = http.createServer(function(req, res) {
     if (req.url === hobbitPrefix && req.method === 'GET') {
         res.end(JSON.stringify(database));
-    } else if (req.url.startsWith('/hobbits/') && req.method === 'GET') {
-        var index = req.url.slice(hobbitPrefix.length);
-        res.end(`You asked for ${database[index]}`);
-    } else if (req.url.startsWith('/hobbits/') && req.method === 'POST') {
-        var name = req.url.slice(hobbitPrefix.length);
-        var index = Math.floor(Math.random() * 1000);
-        database[index] = name;
-        res.end(`Hobbit added at index #${index}`);
-    } else if (req.url.startsWith('/hobbits/') && req.method === 'PUT') {
-        // update single entry
-    } else if (req.url.startsWith('/hobbits/') && req.method === 'DELETE') {
-        var index = req.url.slice(hobbitPrefix.length);
-        var name = database[num];       
-        delete database[num];
-        res.end(`You deleted ${database[name]}`);
+    } else if (req.url.startsWith(hobbitPrefix) && req.method === 'GET') {
+        var id = req.url.slice((hobbitPrefix.length + 1));
+        res.end(`You asked for ${JSON.stringify(database[id])}`);
+    } else if (req.url.startsWith(hobbitPrefix) && req.method === 'POST') {
+        readBody(req, function(body) {
+            var newId = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
+            var newHobbit = JSON.parse(body);
+            newHobbit.id = newId;
+            database[newId] = newHobbit;
+            res.end(`You added ${newHobbit.name}: ${body}`);
+        });
+    } else if (req.url.startsWith(hobbitPrefix) && req.method === 'PUT') {
+        readBody(req, function(body) {
+            var changeHobbit = JSON.parse(body);
+            var id = changeHobbit.id;
+            database[id] = changeHobbit;
+            res.end(`You updated #${id}: ${JSON.stringify(changeHobbit)}`);
+        });
+    } else if (req.url.startsWith(hobbitPrefix) && req.method === 'DELETE') {
+        var id = req.url.slice((hobbitPrefix.length + 1));
+        var deleteHobbit = database[id];       
+        delete database[id];
+        res.end(`You deleted ${deleteHobbit.name}: ${JSON.stringify(deleteHobbit)}`);
     } else {
         res.end('404 no hobbit found');
     }
 });
 
 server.listen(3000);
+
+currentID = 0
 
