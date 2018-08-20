@@ -1,5 +1,4 @@
 const http = require('http');
-const hobbitPrefix = '/hobbits';
 
 let database = {
     6094690559071897: {
@@ -31,17 +30,19 @@ let database = {
 let readBody = (req, callback) => {
     let body = '';
     req.on('data', (chunk) => {
-    body += chunk.toString();
+        body += chunk.toString();
     });
     req.on('end', () => {
-    callback(body);
+        callback(body);
     });
 };
 
-let getDatabase = res => res.end(JSON.stringify(database));
+const hobbitPrefix = '/hobbits/';
 
-let getEntry = (req, res) => {
-    let id = req.url.slice((hobbitPrefix.length + 1));
+let getDatabase = (req, res) => res.end(JSON.stringify(database));
+
+let getEntry = (req, res, ) => {
+    let id = req.url.slice(hobbitPrefix.length);
     res.end(`You asked for ${JSON.stringify(database[id])}`);
 };
 
@@ -51,7 +52,7 @@ let newEntry = (req, res) => {
         let newHobbit = JSON.parse(body);
         newHobbit.id = newId;
         database[newId] = newHobbit;
-        res.end(`You added ${newHobbit.name}: ${JSON.stringify(database[newId])}`);
+        res.end(`You added ${newHobbit.name}: ${JSON.stringify(newHobbit)}`);
     });
 };
 
@@ -65,26 +66,55 @@ let changeEntry = (req, res) => {
 };
 
 let deleteEntry = (req, res) => {
-    let id = req.url.slice((hobbitPrefix.length + 1));
+    let id = req.url.slice(hobbitPrefix.length);
     let deleteHobbit = database[id];       
     delete database[id];
     res.end(`You deleted ${deleteHobbit.name}: ${JSON.stringify(deleteHobbit)}`);
 };
 
-let server = http.createServer((req, res) => {
-    if (req.url === hobbitPrefix && req.method === 'GET') {
-        getDatabase(res);
-    } else if (req.url.startsWith(hobbitPrefix) && req.method === 'GET') {
-        getEntry(req, res);
-    } else if (req.url.startsWith(hobbitPrefix) && req.method === 'POST') {
-        newEntry(req, res);
-    } else if (req.url.startsWith(hobbitPrefix) && req.method === 'PUT') {
-        changeEntry(req, res);
-    } else if (req.url.startsWith(hobbitPrefix) && req.method === 'DELETE') {
-        deleteEntry(req, res);
-    } else {
-        res.end('404 cannot read the fiery letters');
+let notFound = (req, res) => {
+    res.end('404: Cannot read the fiery letters');
+};
+
+let routes = [
+    {
+        method: 'GET',
+        url: /^\/hobbits\/([0-9]+)$/,
+        run: getEntry
+    },
+    {
+        method: 'DELETE',
+        url: /^\/hobbits\/([0-9]+)$/,
+        run: deleteEntry
+    },
+    {
+        method: 'PUT',
+        url: /^\/hobbits\/?$/,
+        run: changeEntry
+    },
+    {
+        method: 'GET',
+        url: /^\/hobbits\/?$/,
+        run: getDatabase
+    },
+    {
+        method: 'POST',
+        url: /^\/hobbits\/?$/,
+        run: newEntry
+    },
+    {
+        method: 'GET',
+        url: /^.*$/,
+        run: notFound
     }
+];
+
+let server = http.createServer((req, res) => {
+    let route = routes.find(route => 
+        route.url.test(req.url) &&
+        req.method === route.method
+    );
+    route.run(req, res);
 });
 
 server.listen(3000);
