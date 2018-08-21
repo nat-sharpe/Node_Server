@@ -1,27 +1,32 @@
 const http = require('http');
+const fs = require('fs');
 
 let database = {
     6094690559071897: {
        name: "Frodo", 
-       birthday: "September 22, 2968 of Third Age",
+       email: "frodo9fingers@bagend.com",
+       phone: "(505) 950-3330",
        address: "Bagend, Hobbiton, Shire",
        id: "6094690559071897"
     },
     1099270857172677: {
         name: "Sam", 
-        birthday: "April 6 June, 2980 of Third Age",
+        email: "greenthumb88@bagend.com",
+        phone: "(505) 345-1002",
         address: "Hobbiton, Shire",
         id: "1099270857172677"
     },
     8504541499688703: {
         name: "Merry", 
-        birthday: "30 May, 2982 of Third Age",
+        email: "mushrooms@shortcut.org",
+        phone: "(208) 038-1000",
         address: "Shire",
         id: "8504541499688703"
     }, 
     8897236488571597: {
         name: "Pippin", 
-        birthday: "January 21, 2990 of Third Age",
+        email: "fool_of_a_took@hairyfeet.com",
+        phone: "(219) 295-0333",
         address: "Shire",
         id: "8897236488571597"
     },
@@ -110,11 +115,17 @@ let routes = [
 ];
 
 let server = http.createServer((req, res) => {
-    let route = routes.find(route => 
-        route.url.test(req.url) &&
-        req.method === route.method
-    );
-    route.run(req, res);
+    fs.readFile('Front_End' + req.url, (err, data) => {
+        if (err) {
+            let route = routes.find(route => 
+                route.url.test(req.url) &&
+                req.method === route.method
+            );
+            route.run(req, res);
+        } else {
+            res.end(data);
+        }
+    });
 });
 
 server.listen(3000);
