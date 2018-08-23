@@ -1,36 +1,8 @@
 const http = require('http');
 const fs = require('fs');
-
-let database = {
-    6094690559071897: {
-       name: "Frodo", 
-       email: "frodo9fingers@bagend.com",
-       phone: "(505) 950-3330",
-       address: "Bagend, Hobbiton, Shire",
-       id: "6094690559071897"
-    },
-    1099270857172677: {
-        name: "Sam", 
-        email: "greenthumb88@bagend.com",
-        phone: "(505) 345-1002",
-        address: "Hobbiton, Shire",
-        id: "1099270857172677"
-    },
-    8504541499688703: {
-        name: "Merry", 
-        email: "mushrooms@shortcut.org",
-        phone: "(208) 038-1000",
-        address: "Shire",
-        id: "8504541499688703"
-    }, 
-    8897236488571597: {
-        name: "Pippin", 
-        email: "fool_of_a_took@hairyfeet.com",
-        phone: "(219) 295-0333",
-        address: "Shire",
-        id: "8897236488571597"
-    },
-};
+const pg = require('pg-promise')();
+const dbConfig = ('postgres://nat@localhost:5432/nat');
+const db = pg(dbConfig);
 
 let readBody = (req, callback) => {
     let body = '';
@@ -44,7 +16,15 @@ let readBody = (req, callback) => {
 
 const hobbitPrefix = '/hobbits/';
 
-let getDatabase = (req, res) => res.end(JSON.stringify(database));
+// db.query('select * from hobbitDatabase;')
+//     .then((results) => console.log(results[2].name))
+//     .then(() => pg.end());
+
+let getDatabase = (req, res) => {
+    db.query('select * from nat;')
+        .then((results) => res.end(JSON.stringify(results)))
+        .then(() => pg.end());
+};
 
 let getEntry = (req, res, ) => {
     let id = req.url.slice(hobbitPrefix.length);
